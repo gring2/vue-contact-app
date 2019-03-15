@@ -1,3 +1,4 @@
+// noinspection TsLint
 module.exports = {
   moduleFileExtensions: [
     'js',
@@ -5,7 +6,7 @@ module.exports = {
     'json',
     'vue',
     'ts',
-    'tsx'
+    'tsx',
   ],
   transform: {
     '^.+\\.vue$': 'vue-jest',
@@ -30,4 +31,4 @@ module.exports = {
       babelConfig: true
     }
   }
-}
+};

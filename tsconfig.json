@@ -12,7 +12,8 @@
     "sourceMap": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "alwaysStrict": true,
+    "noImplicitAny": false,
+
     "baseUrl": ".",
     "types": [
       "webpack-env",

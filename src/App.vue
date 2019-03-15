@@ -12,139 +12,145 @@
 </template>
 <!--suppress TypeScriptCheckImport, TypeScriptUnresolvedFunction, TypeScriptUnresolvedVariable -->
 <script lang="ts">
-
-  import { Component, Prop, Emit, Watch, Vue } from 'vue-property-decorator';
-  import ContactList from "@/components/ContactList"
-  import AddContact from "@/components/AddContact"
-  import UpdateContact from "@/components/UpdateContact"
-  import UpdatePhoto from "@/components/UpdatePhoto"
-  import CONF from "@/Config"
-  import eventBus from "@/EventBus"
-  import Paginate from 'vuejs-paginate'
+  import { Component, Prop, Emit, Watch, Vue } from "vue-property-decorator";
+  import ContactList from "@/components/ContactList.vue";
+  import AddContact from "@/components/AddContact.vue";
+  import UpdateContact from "@/components/UpdateContact.vue";
+  import UpdatePhoto from "@/components/UpdatePhoto.vue";
+  import CONF from "@/Config";
+  import eventBus from "@/EventBus";
+  import Paginate from "vuejs-paginate";
 
   @Component({
-          components: {ContactList, AddContact, UpdateContact, UpdatePhoto, Paginate}
+    components: { ContactList, AddContact, UpdateContact, UpdatePhoto, Paginate, }
+
   })
+
   export default class App extends Vue {
 
-    currentView: string| null = null;
-    contact = {no: 0, name: '', te: '', address: '', photo: ''};
-    contactlist = {pageno: 1, pagesize: CONF.PAGESIZE, totalcount: 0, contacts: []};
-    mounted(){
+    public $refs!: {
+        pagebuttons: HTMLFormElement
+    }
+    private $axios = Vue.$axios
+    private currentView: string| null = null;
+    private contact: Dict = {no: 0, name: '', te: '', address: '', photo: ''};
+    private contactlist: Dict = {pageno: 1, pagesize: CONF.PAGESIZE, totalcount: 0, contacts: []};
+
+    public mounted() {
       this.fetchContacts()
-        eventBus.$on("cancel", () => {
-            this.currentView = null
-        });
+      eventBus.$on("cancel", () => {
+          this.currentView = null
+      });
 
-        eventBus.$on("addSubmit", (contact) => {
-            this.currentView = null;
-            this.addContact(contact)
-        });
+      eventBus.$on("addSubmit", (contact: any) => {
+          this.currentView = null;
+          this.addContact(contact)
+      });
 
-        eventBus.$on("updateSubmit", (contact) => {
-            this.currentView = null;
-            this.updateContact(contact)
-        });
+      eventBus.$on("updateSubmit", (contact: any) => {
+          this.currentView = null;
+          this.updateContact(contact)
+      });
 
-        eventBus.$on("addContactForm", () => {
-            this.currentView = 'addContact'
-        });
+      eventBus.$on("addContactForm", () => {
+          this.currentView = 'addContact'
+      });
 
-        eventBus.$on("editContactForm", (no) => {
-            this.fetchContactOne(no);
-            this.currentView = "updateContact"
-        });
+      eventBus.$on("editContactForm", (no: string) => {
+          this.fetchContactOne(no);
+          this.currentView = "updateContact"
+      });
 
-        eventBus.$on("deleteContact", (no) => {
-            this.deleteContact(no)
-        });
+      eventBus.$on("deleteContact", (no: string) => {
+          this.deleteContact(no)
+      });
 
-        eventBus.$on("editPhoto", (no) => {
-            this.fetchContactOne(no);
-            this.currentView = "updatePhoto"
-        });
+      eventBus.$on("editPhoto", (no: string) => {
+          this.fetchContactOne(no);
+          this.currentView = "updatePhoto"
+      });
 
-        eventBus.$on("updatePhoto", (no, file) => {
-            if (file){
-                this.updatePhoto(no ,file)
-            }
-            this.currentView = null
-        })
+      eventBus.$on("updatePhoto", (no: string, file: File) => {
+          if ( file ) {
+              this.updatePhoto(no, file)
+          }
+          this.currentView = null
+      })
     }
 
-    get totalpage(): number {
+    private get totalpage(): number {
         return Math.floor((this.contactlist.totalcount - 1) / this.contactlist.pagesize) + 1
     }
 
     @Watch('contactlist.pageno')
-    onContactListPagenoChange(){
+    private onContactListPagenoChange() {
         this.$refs.pagebuttons.selected = this.contactlist.pageno - 1
     }
-    pageChanged(page) {
+    private pageChanged(page: any) {
         this.contactlist.pageno = page;
         this.fetchContacts()
     }
-    async fetchContacts(){
-        try{
+    private async fetchContacts() {
+        try {
             const contactlist = await this.$axios.get(CONF.FETCH, {
                 params: {
                     pageno: this.contactlist.pageno,
-                    pagesize: this.contactlist.pagesize
+                    pagesize: this.contactlist.pagesize,
                 }
             });
-            this.contactlist = contactlist.data
+            this.contactlist = contactlist.data;
 
-        }catch (e) {
+        } catch (e) {
             console.error('fetchContacts failed', e);
             this.contactlist.contacts = []
         }
 
     }
 
-    async addContact(contact) {
-        try{
+    private async addContact(contact: any) {
+        try {
             await this.$axios.post(CONF.ADD, contact);
             this.contactlist.pageno = 1;
             this.fetchContacts()
-        }catch (e) {
+        } catch (e) {
             console.error('addContact failed', e)
         }
     }
 
-    async updateContact(contact) {
-        try{
+    private async updateContact(contact: any) {
+        try {
             await this.$axios.put(CONF.UPDATE.replace("${no}", contact.no), contact);
             this.fetchContacts()
-        }catch (e) {
+        } catch (e) {
             console.error('updateContact failed', e)
         }
     }
 
-    async fetchContactOne(no) {
-        try{
-            const contact = this.$axios.get(CONF.FETCH_ONE.replace("${no}", no));
+    private async fetchContactOne(no: string) {
+        try {
+            const contact = await this.$axios.get(CONF.FETCH_ONE.replace("${no}", no));
             this.contact = contact.data
-        }catch (e) {
+        } catch (e) {
             console.error('fetchContactOne failed', e)
         }
     }
 
-    async deleteContact(no) {
-        try{
+    private async deleteContact(no: string) {
+        try {
             this.$axios.delete(CONF.DELETE.replace("${no}", no));
             this.fetchContacts()
-        }catch (e) {
+        } catch (e) {
             console.error('delete faeild', e)
         }
     }
 
-    async updatePhoto(no, file) {
-      try{
+    private async updatePhoto(no: string, file: File) {
+        try {
           const data = new FormData();
           data.append('photo', file);
           this.$axios.post(CONF.UPDATE_PHOTO.replace("${no}", no), data);
           this.fetchContacts()
-      }catch (e) {
+      } catch (e) {
           console.error("updatePhoto failed", e)
       }
 

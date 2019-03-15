@@ -1,4 +1,4 @@
-const BASE_URL: string = "/api"
+const BASE_URL: string = "/api";
 
 export default {
     ADD: `${BASE_URL}/contacts`,
@@ -9,4 +9,4 @@ export default {
     UPDATE: BASE_URL + "/contacts/${no}",
     UPDATE_PHOTO : BASE_URL + "/contacts/${no}/photo",
 
-}
+};
